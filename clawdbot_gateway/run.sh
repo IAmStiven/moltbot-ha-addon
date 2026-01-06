@@ -166,6 +166,14 @@ read_gateway_mode() {
   node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const gateway=data.gateway||{};const mode=String(gateway.mode||'').trim();if(mode){console.log(mode);}"; 2>/dev/null
 }
 
+ensure_log_file() {
+  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(!file){logging.file='/tmp/clawdbot/clawdbot.log';data.logging=logging;fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');console.log('updated');}else{console.log('unchanged');}" 2>/dev/null
+}
+
+read_log_file() {
+  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(file){console.log(file);}"; 2>/dev/null
+}
+
 if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
   mode_status="$(ensure_gateway_mode || true)"
   if [ "${mode_status}" = "updated" ]; then
@@ -174,6 +182,21 @@ if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
     log "gateway.mode already set"
   else
     log "failed to normalize gateway.mode (invalid config?)"
+  fi
+fi
+
+LOG_FILE="/tmp/clawdbot/clawdbot.log"
+if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
+  log_status="$(ensure_log_file || true)"
+  if [ "${log_status}" = "updated" ]; then
+    log "logging.file set to ${LOG_FILE} (missing)"
+  elif [ "${log_status}" = "unchanged" ]; then
+    read_log="$(read_log_file || true)"
+    if [ -n "${read_log}" ]; then
+      LOG_FILE="${read_log}"
+    fi
+  else
+    log "failed to normalize logging.file (invalid config?)"
   fi
 fi
 
@@ -202,6 +225,7 @@ if [ "${VERBOSE}" = "true" ]; then
 fi
 
 child_pid=""
+tail_pid=""
 
 forward_usr1() {
   if [ -n "${child_pid}" ]; then
@@ -213,9 +237,23 @@ forward_usr1() {
 }
 
 shutdown_child() {
+  if [ -n "${tail_pid}" ]; then
+    kill -TERM "${tail_pid}" 2>/dev/null || true
+  fi
   if [ -n "${child_pid}" ]; then
     kill -TERM "${child_pid}" 2>/dev/null || true
   fi
+}
+
+start_log_tail() {
+  local file="$1"
+  (
+    while [ ! -f "${file}" ]; do
+      sleep 1
+    done
+    tail -n +1 -F "${file}"
+  ) &
+  tail_pid=$!
 }
 
 trap forward_usr1 USR1
@@ -224,10 +262,15 @@ trap shutdown_child TERM INT
 while true; do
   pnpm clawdbot "${ARGS[@]}" &
   child_pid=$!
+  start_log_tail "${LOG_FILE}"
   set +e
   wait "${child_pid}"
   status=$?
   set -e
+  if [ -n "${tail_pid}" ]; then
+    kill -TERM "${tail_pid}" 2>/dev/null || true
+    tail_pid=""
+  fi
 
   if [ "${status}" -eq 129 ]; then
     log "gateway exited after SIGUSR1; restarting"
