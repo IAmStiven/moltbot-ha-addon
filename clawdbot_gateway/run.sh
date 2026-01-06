@@ -202,6 +202,19 @@ shutdown_child() {
 trap forward_usr1 USR1
 trap shutdown_child TERM INT
 
-pnpm clawdbot "${ARGS[@]}" &
-child_pid=$!
-wait "${child_pid}"
+while true; do
+  pnpm clawdbot "${ARGS[@]}" &
+  child_pid=$!
+  set +e
+  wait "${child_pid}"
+  status=$?
+  set -e
+
+  if [ "${status}" -eq 129 ]; then
+    log "gateway exited after SIGUSR1; restarting"
+    continue
+  fi
+  break
+done
+
+exit "${status}"
