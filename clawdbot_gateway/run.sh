@@ -7,7 +7,7 @@ log() {
 
 log "run.sh version=2026-01-18-persistent-home"
 
-BASE_DIR=/config/clawdbot
+BASE_DIR=/config/moltbot
 STATE_DIR="${BASE_DIR}/.moltbot"
 REPO_DIR="${BASE_DIR}/moltbot-src"
 WORKSPACE_DIR="${BASE_DIR}/workspace"
@@ -39,8 +39,8 @@ if [ -d /root/.moltbot ] && [ ! -f "${STATE_DIR}/moltbot.json" ]; then
   cp -a /root/.moltbot/. "${STATE_DIR}/"
 fi
 
-if [ -d /root/clawdbot-src ] && [ ! -d "${REPO_DIR}" ]; then
-  mv /root/clawdbot-src "${REPO_DIR}"
+if [ -d /root/moltbot-src ] && [ ! -d "${REPO_DIR}" ]; then
+  mv /root/moltbot-src "${REPO_DIR}"
 fi
 
 if [ -d /root/workspace ] && [ ! -d "${WORKSPACE_DIR}" ]; then
@@ -193,7 +193,7 @@ read_gateway_mode() {
 }
 
 ensure_log_file() {
-  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(!file){logging.file='/tmp/clawdbot/clawdbot.log';data.logging=logging;fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');console.log('updated');}else{console.log('unchanged');}" 2>/dev/null
+  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(!file){logging.file='/tmp/moltbot/moltbot.log';data.logging=logging;fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');console.log('updated');}else{console.log('unchanged');}" 2>/dev/null
 }
 
 read_log_file() {
