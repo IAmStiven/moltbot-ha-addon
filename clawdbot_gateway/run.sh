@@ -8,8 +8,8 @@ log() {
 log "run.sh version=2026-01-18-persistent-home"
 
 BASE_DIR=/config/clawdbot
-STATE_DIR="${BASE_DIR}/.clawdbot"
-REPO_DIR="${BASE_DIR}/clawdbot-src"
+STATE_DIR="${BASE_DIR}/.moltbot"
+REPO_DIR="${BASE_DIR}/moltbot-src"
 WORKSPACE_DIR="${BASE_DIR}/workspace"
 SSH_AUTH_DIR="${BASE_DIR}/.ssh"
 
@@ -35,8 +35,8 @@ for dir in .ssh .config .local .cache .npm; do
 done
 log "persistent home symlinks configured"
 
-if [ -d /root/.clawdbot ] && [ ! -f "${STATE_DIR}/clawdbot.json" ]; then
-  cp -a /root/.clawdbot/. "${STATE_DIR}/"
+if [ -d /root/.moltbot ] && [ ! -f "${STATE_DIR}/moltbot.json" ]; then
+  cp -a /root/.moltbot/. "${STATE_DIR}/"
 fi
 
 if [ -d /root/clawdbot-src ] && [ ! -d "${REPO_DIR}" ]; then
@@ -49,17 +49,17 @@ fi
 
 export HOME="${BASE_DIR}"
 export CLAWDBOT_STATE_DIR="${STATE_DIR}"
-export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/clawdbot.json"
+export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/moltbot.json"
 
 log "config path=${CLAWDBOT_CONFIG_PATH}"
 
-cat > /etc/profile.d/clawdbot.sh <<EOF
+cat > /etc/profile.d/moltbot.sh <<EOF
 export HOME="${BASE_DIR}"
 export GH_CONFIG_DIR="${BASE_DIR}/.config/gh"
 export PATH="${BASE_DIR}/bin:\${PATH}"
 if [ -n "\${SSH_CONNECTION:-}" ]; then
   export CLAWDBOT_STATE_DIR="${STATE_DIR}"
-  export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/clawdbot.json"
+  export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/moltbot.json"
   cd "${REPO_DIR}" 2>/dev/null || true
 fi
 EOF
@@ -179,9 +179,9 @@ log "building control UI"
 pnpm ui:build
 
 if [ ! -f "${CLAWDBOT_CONFIG_PATH}" ]; then
-  pnpm clawdbot setup --workspace "${WORKSPACE_DIR}"
+  pnpm moltbot setup --workspace "${WORKSPACE_DIR}"
 else
-  log "config exists; skipping clawdbot setup"
+  log "config exists; skipping moltbot setup"
 fi
 
 ensure_gateway_mode() {
@@ -211,7 +211,7 @@ if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
   fi
 fi
 
-LOG_FILE="/tmp/clawdbot/clawdbot.log"
+LOG_FILE="/tmp/moltbot/moltbot.log"
 if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
   log_status="$(ensure_log_file || true)"
   if [ "${log_status}" = "updated" ]; then
@@ -373,7 +373,7 @@ trap forward_usr1 USR1
 trap shutdown_child TERM INT
 
 while true; do
-  pnpm clawdbot "${ARGS[@]}" &
+  pnpm moltbot "${ARGS[@]}" &
   child_pid=$!
   start_log_tail "${LOG_FILE}"
   set +e
