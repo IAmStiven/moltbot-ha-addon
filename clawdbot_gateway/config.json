@@ -1,6 +1,6 @@
 {
   "name": "Moltbot Gateway",
-  "version": "0.2.16",
+  "version": "0.2.17",
   "slug": "clawdbot_gateway",
   "description": "Clawdbot Gateway (SSH-tunneled, HA add-on)",
   "url": "https://github.com/IAmStiven/moltbot-ha-addon",
