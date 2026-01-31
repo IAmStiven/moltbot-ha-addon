@@ -1,6 +1,6 @@
 {
   "name": "Moltbot Gateway",
-  "version": "0.2.17-1",
+  "version": "0.2.17-2",
   "slug": "clawdbot_gateway",
   "description": "Clawdbot Gateway (SSH-tunneled, HA add-on)",
   "url": "https://github.com/IAmStiven/moltbot-ha-addon",
@@ -13,8 +13,8 @@
   "homeassistant_api": false,
   "map": ["config:rw"],
   "environment": {
-    "HOME": "/config/moltbot",
-    "GH_CONFIG_DIR": "/config/moltbot/.config/gh"
+    "HOME": "/config/openclaw",
+    "GH_CONFIG_DIR": "/config/openclaw/.config/gh"
   },
   "options": {
     "port": 18789,
@@ -22,7 +22,7 @@
     "log_format": "pretty",
     "log_color": false,
     "log_fields": "",
-    "repo_url": "https://github.com/moltbot/moltbot.git",
+    "repo_url": "https://github.com/openclaw/openclaw.git",
     "branch": "",
     "github_token": "",
     "ssh_port": 2222,
