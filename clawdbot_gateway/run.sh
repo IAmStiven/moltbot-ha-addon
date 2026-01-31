@@ -9,7 +9,7 @@ log "run.sh version=2026-01-18-persistent-home"
 
 BASE_DIR=/config/openclaw
 STATE_DIR="${BASE_DIR}/.openclaw"
-REPO_DIR="${BASE_DIR}/openclaw-src"
+REPO_DIR="${BASE_DIR}/openclaw"
 WORKSPACE_DIR="${BASE_DIR}/workspace"
 SSH_AUTH_DIR="${BASE_DIR}/.ssh"
 
@@ -39,8 +39,8 @@ if [ -d /root/.openclaw ] && [ ! -f "${STATE_DIR}/openclaw.json" ]; then
   cp -a /root/.openclaw/. "${STATE_DIR}/"
 fi
 
-if [ -d /root/openclaw-src ] && [ ! -d "${REPO_DIR}" ]; then
-  mv /root/openclaw-src "${REPO_DIR}"
+if [ -d /root/openclaw ] && [ ! -d "${REPO_DIR}" ]; then
+  mv /root/openclaw "${REPO_DIR}"
 fi
 
 if [ -d /root/workspace ] && [ ! -d "${WORKSPACE_DIR}" ]; then
