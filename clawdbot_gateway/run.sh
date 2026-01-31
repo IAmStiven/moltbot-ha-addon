@@ -7,9 +7,9 @@ log() {
 
 log "run.sh version=2026-01-18-persistent-home"
 
-BASE_DIR=/config/moltbot
-STATE_DIR="${BASE_DIR}/.moltbot"
-REPO_DIR="${BASE_DIR}/moltbot-src"
+BASE_DIR=/config/openclaw
+STATE_DIR="${BASE_DIR}/.openclaw"
+REPO_DIR="${BASE_DIR}/openclaw-src"
 WORKSPACE_DIR="${BASE_DIR}/workspace"
 SSH_AUTH_DIR="${BASE_DIR}/.ssh"
 
@@ -35,12 +35,12 @@ for dir in .ssh .config .local .cache .npm; do
 done
 log "persistent home symlinks configured"
 
-if [ -d /root/.moltbot ] && [ ! -f "${STATE_DIR}/moltbot.json" ]; then
-  cp -a /root/.moltbot/. "${STATE_DIR}/"
+if [ -d /root/.openclaw ] && [ ! -f "${STATE_DIR}/openclaw.json" ]; then
+  cp -a /root/.openclaw/. "${STATE_DIR}/"
 fi
 
-if [ -d /root/moltbot-src ] && [ ! -d "${REPO_DIR}" ]; then
-  mv /root/moltbot-src "${REPO_DIR}"
+if [ -d /root/openclaw-src ] && [ ! -d "${REPO_DIR}" ]; then
+  mv /root/openclaw-src "${REPO_DIR}"
 fi
 
 if [ -d /root/workspace ] && [ ! -d "${WORKSPACE_DIR}" ]; then
@@ -49,17 +49,17 @@ fi
 
 export HOME="${BASE_DIR}"
 export CLAWDBOT_STATE_DIR="${STATE_DIR}"
-export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/moltbot.json"
+export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/openclaw.json"
 
 log "config path=${CLAWDBOT_CONFIG_PATH}"
 
-cat > /etc/profile.d/moltbot.sh <<EOF
+cat > /etc/profile.d/openclaw.sh <<EOF
 export HOME="${BASE_DIR}"
 export GH_CONFIG_DIR="${BASE_DIR}/.config/gh"
 export PATH="${BASE_DIR}/bin:\${PATH}"
 if [ -n "\${SSH_CONNECTION:-}" ]; then
   export CLAWDBOT_STATE_DIR="${STATE_DIR}"
-  export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/moltbot.json"
+  export CLAWDBOT_CONFIG_PATH="${STATE_DIR}/openclaw.json"
   cd "${REPO_DIR}" 2>/dev/null || true
 fi
 EOF
@@ -179,9 +179,9 @@ log "building control UI"
 pnpm ui:build
 
 if [ ! -f "${CLAWDBOT_CONFIG_PATH}" ]; then
-  pnpm moltbot setup --workspace "${WORKSPACE_DIR}"
+  pnpm openclaw setup --workspace "${WORKSPACE_DIR}"
 else
-  log "config exists; skipping moltbot setup"
+  log "config exists; skipping openclaw setup"
 fi
 
 ensure_gateway_mode() {
@@ -193,7 +193,7 @@ read_gateway_mode() {
 }
 
 ensure_log_file() {
-  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(!file){logging.file='/tmp/moltbot/moltbot.log';data.logging=logging;fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');console.log('updated');}else{console.log('unchanged');}" 2>/dev/null
+  node -e "const fs=require('fs');const JSON5=require('json5');const p=process.env.CLAWDBOT_CONFIG_PATH;const raw=fs.readFileSync(p,'utf8');const data=JSON5.parse(raw);const logging=data.logging||{};const file=String(logging.file||'').trim();if(!file){logging.file='/tmp/openclaw/openclaw.log';data.logging=logging;fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');console.log('updated');}else{console.log('unchanged');}" 2>/dev/null
 }
 
 read_log_file() {
@@ -211,7 +211,7 @@ if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
   fi
 fi
 
-LOG_FILE="/tmp/moltbot/moltbot.log"
+LOG_FILE="/tmp/openclaw/openclaw.log"
 if [ -f "${CLAWDBOT_CONFIG_PATH}" ]; then
   log_status="$(ensure_log_file || true)"
   if [ "${log_status}" = "updated" ]; then
@@ -373,7 +373,7 @@ trap forward_usr1 USR1
 trap shutdown_child TERM INT
 
 while true; do
-  pnpm moltbot "${ARGS[@]}" &
+  pnpm openclaw "${ARGS[@]}" &
   child_pid=$!
   start_log_tail "${LOG_FILE}"
   set +e
